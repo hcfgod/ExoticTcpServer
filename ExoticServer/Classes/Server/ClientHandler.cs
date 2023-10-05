@@ -53,7 +53,7 @@ namespace ExoticServer.Classes.Server
                         }
                     }
 
-                    Packet receivedPacket = await _packetHandler.ReceivePacketAsync(_clientStream, 4096);
+                    Packet receivedPacket = await _packetHandler.ReceivePacketAsync(_clientStream, dataBuffer);
 
                     if (receivedPacket != null)
                     {

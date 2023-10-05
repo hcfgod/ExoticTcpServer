@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server.PacketSystem
 {
@@ -62,19 +63,39 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
         }
 
-        public Packet CreateNewPacket(byte[] data)
+        public Packet CreateNewPacket(byte[] data, int packetType, bool encryptionFlag = false, string version = "0.1")
         {
-            return new Packet
+            Packet packet = new Packet
             {
+                PacketID = Guid.NewGuid(),
+                PacketType = packetType,
+                Timestamp = DateTime.UtcNow,
                 Data = data,
+                EncryptionFlag = encryptionFlag,
+
+                Version = version,
+                Priority = 1,
+                ExpirationTime = DateTime.UtcNow.AddMinutes(5),
+                SenderID = "Server",
+                ReceiverID = "Client",
             };
+
+            if(packet.IsFragmented)
+            {
+                packet.FragmentID = Guid.NewGuid();
+            }
+
+            return packet;
         }
 
-        public async Task<bool> SendPacketAsync(Packet packet, NetworkStream stream, string clientId)
+        public async Task<bool> SendPacketAsync(Packet packet, NetworkStream stream, string clientId = null)
         {
-            if (IsRateLimited(clientId))
+            if(clientId != null)
             {
-                return false;
+                if (IsRateLimited(clientId))
+                {
+                    return false;
+                }
             }
 
             try
@@ -106,13 +127,11 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
         }
 
-        public async Task<Packet> ReceivePacketAsync(NetworkStream stream, int bufferSize)
+        public async Task<Packet> ReceivePacketAsync(NetworkStream stream, byte[] buffer)
         {
-            byte[] buffer = new byte[bufferSize];
-
             try
             {
-                int bytesRead = await stream.ReadAsync(buffer, 0, bufferSize);
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
 
                 if (bytesRead == 0)
                 {
@@ -181,5 +200,4 @@ namespace ExoticServer.Classes.Server.PacketSystem
             return false;
         }
     }
-}
 }

@@ -13,7 +13,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
 
         // Payload
         public byte[] Data { get; set; }
-        public string DataType { get; set; }
 
         // Security
         public string Checksum { get; set; }
@@ -33,7 +32,5 @@ namespace ExoticServer.Classes.Server.PacketSystem
         public DateTime? ExpirationTime { get; set; }
         public string SenderID { get; set; }
         public string ReceiverID { get; set; }
-        public Dictionary<string, object> CustomFlags { get; set; }
-        public string Locale { get; set; }
     }
 }
