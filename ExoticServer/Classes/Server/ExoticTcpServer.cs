@@ -56,7 +56,7 @@ namespace ExoticServer.Classes.Server
 
             foreach (var clientHandler in _clients.Values)
             {
-                clientHandler.DisconnectedClient();
+                clientHandler.DisconnectClient();
             }
 
             _cts.Cancel(); // Signal all operations to cancel

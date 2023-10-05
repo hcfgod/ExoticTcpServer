@@ -3,6 +3,7 @@ using Serilog;
 using System;
 using System.Buffers;
 using System.IO;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,11 +54,6 @@ namespace ExoticServer.Classes.Server
                             break;
                         }
                     }
-
-                    await Task.Delay(1);
-
-                    // Process Packet Here
-                    ChronicApplication.Instance.Logger.Information("Loop Running!");
                 }
             }
             catch (IOException ioEx) when (ioEx.InnerException is SocketException)
@@ -73,22 +69,22 @@ namespace ExoticServer.Classes.Server
             finally
             {
                 pool.Return(dataBuffer);
-                DisconnectedClient();
             }
         }
 
-        public void DisconnectedClient()
+        public void DisconnectClient()
         {
-            if (_clientStream != null)
+            try
             {
-                _clientStream.Dispose();
-                _clientStream = null;
-            }
+                _clientStream?.Dispose();
+                _client?.Dispose();
 
-            if (_client != null)
-{
-                _client.Close();
+                _clientStream = null;
                 _client = null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"(NetworkClient) DisconnectFromServer(): {ex.Message}");
             }
         }
 
