@@ -6,7 +6,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server
 {
@@ -35,17 +34,36 @@ namespace ExoticServer.Classes.Server
 
             try
             {
-                while (!token.IsCancellationRequested)
+                while (!token.IsCancellationRequested && _client.Connected)
                 {
-                    // Process Packet Here
+                    if(_client == null || _clientStream == null)
+                    {
+                        ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
+                        break;
+                    }
 
-                    MessageBox.Show("awd");
-                    break;
+                    if (_client.Client.Poll(0, SelectMode.SelectRead))
+                    {
+                        byte[] buff = new byte[1];
+
+                        if (_client.Client.Receive(buff, SocketFlags.Peek) == 0)
+                        {
+                            // Client disconnected
+                            ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
+                            break;
+                        }
+                    }
+
+                    await Task.Delay(1);
+
+                    // Process Packet Here
+                    ChronicApplication.Instance.Logger.Information("Loop Running!");
                 }
             }
             catch (IOException ioEx) when (ioEx.InnerException is SocketException)
             {
                 // Handle potential socket exceptions here. This might occur if the client forcibly closes the connection.
+                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): Client Forcefully Closed The Connection");
             }
             catch (Exception ex)
             {
@@ -54,8 +72,6 @@ namespace ExoticServer.Classes.Server
             }
             finally
             {
-                MessageBox.Show("Finally");
-
                 pool.Return(dataBuffer);
                 DisconnectedClient();
             }

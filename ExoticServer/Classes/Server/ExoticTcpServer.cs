@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ExoticServer.App;
-using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server
 {
@@ -90,18 +89,32 @@ namespace ExoticServer.Classes.Server
 
         private async Task ListenForClients(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            while (!token.IsCancellationRequested && _state == ServerState.Running)
             {
                 try
                 {
-                    CleanupCompletedTasks(); // Assuming you've implemented this
+                    CleanupCompletedTasks();
+
+                    if (_serverTcpListener == null || !_serverTcpListener.Server.IsBound)
+                    {
+                        // Log or handle the situation
+                        ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync() - Server is Bound.");
+
+                        return;
+                    }
 
                     // Using a timeout with AcceptTcpClientAsync allows you to periodically check for cancellation.
                     if (_serverTcpListener.Pending())
                     {
                         TcpClient newClient = await _serverTcpListener.AcceptTcpClientAsync();
 
-                        ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync - Client Connected");
+                        if (newClient == null || newClient.Client == null || !newClient.Client.Connected)
+                        {
+                            ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync() - Null Client");
+                            return;
+                        }
+
+                        ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync() - Client Connected");
 
                         ClientHandler clientHandler = new ClientHandler(this, newClient);
 
@@ -109,6 +122,7 @@ namespace ExoticServer.Classes.Server
                         clientHandler.ClientTask = clientTask;
 
                         string clientKey = newClient.Client.RemoteEndPoint.ToString();
+
                         _clients.TryAdd(clientKey, clientHandler);
                         _clientTasks.TryAdd(clientKey, clientTask);
                     }
@@ -120,12 +134,12 @@ namespace ExoticServer.Classes.Server
                 catch (SocketException socketEx)
                 {
                     // Handle socket exceptions, which might occur if the listener gets closed.
-                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Socket error: {socketEx.Message}");
+                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync() - Socket error: {socketEx.Message}");
                 }
                 catch (Exception ex)
                 {
                     // Handle other general exceptions.
-                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Listening error: {ex.Message}");
+                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync() - Listening error: {ex.Message}");
                 }
             }
         }
@@ -141,6 +155,7 @@ namespace ExoticServer.Classes.Server
             {
                 if (_clientTasks.TryGetValue(key, out Task task) && task.IsCompleted)
                 {
+                    task.Dispose();
                     _clientTasks.TryRemove(key, out _);
                 }
             }
