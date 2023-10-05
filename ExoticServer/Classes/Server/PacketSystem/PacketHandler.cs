@@ -1,5 +1,4 @@
 ﻿using ExoticServer.App;
-using ExoticServer.Classes.Server.PacketSystem.Packets;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
 {
     public class PacketHandler
     {
-        private Dictionary<int, IPacketHandler> packetHandlers = new Dictionary<int, IPacketHandler>();
+        private Dictionary<string, IPacketHandler> packetHandlers = new Dictionary<string, IPacketHandler>();
 
         private Dictionary<string, int> rateLimits = new Dictionary<string, int>();
         private Dictionary<string, DateTime> lastRequestTimes = new Dictionary<string, DateTime>();
@@ -21,7 +20,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
         public PacketHandler()
         {
             // Initialize packet handlers
-            packetHandlers.Add(1, new TestPacket());
         }
 
         public byte[] SerializePacket(Packet packet)
@@ -64,7 +62,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
         }
 
-        public Packet CreateNewPacket(byte[] data, int packetType, bool encryptionFlag = false, string version = "0.1")
+        public Packet CreateNewPacket(byte[] data, string packetType, bool encryptionFlag = false, string version = "0.1")
         {
             Packet packet = new Packet
             {

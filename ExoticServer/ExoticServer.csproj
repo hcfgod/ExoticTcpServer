@@ -68,7 +68,6 @@
     <Compile Include="Classes\Server\PacketSystem\IPacketHandler.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
     <Compile Include="Classes\Server\PacketSystem\PacketHandler.cs" />
-    <Compile Include="Classes\Server\PacketSystem\Packets\TestPacket.cs" />
     <Compile Include="Forms\MainServerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -107,7 +106,9 @@
   <ItemGroup>
     <None Include="App\App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Classes\Server\PacketSystem\Packets\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Exit.png" />
   </ItemGroup>

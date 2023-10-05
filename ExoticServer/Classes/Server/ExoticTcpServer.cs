@@ -5,6 +5,8 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ExoticServer.App;
+using ExoticServer.Classes.Server.PacketSystem;
+using System.Text;
 
 namespace ExoticServer.Classes.Server
 {
@@ -19,6 +21,8 @@ namespace ExoticServer.Classes.Server
 
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
+        private PacketHandler _serverPacketHandler;
+
         public ExoticTcpServer(int port)
         {
             if (!IsValidServerPort(port))
@@ -28,6 +32,8 @@ namespace ExoticServer.Classes.Server
             }
 
             _port = port;
+
+            _serverPacketHandler = new PacketHandler();
         }
 
         public async Task StartServer()
@@ -107,6 +113,11 @@ namespace ExoticServer.Classes.Server
 
                         _clients.TryAdd(clientKey, clientHandler);
                         _clientTasks.TryAdd(clientKey, clientTask);
+
+                        // Send the client their client id
+                        byte[] clientKeyData = Encoding.UTF8.GetBytes(clientKey);
+                        Packet clientIDPacket = _serverPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");
+                        await _serverPacketHandler.SendPacketAsync(clientIDPacket, clientHandler.GetNetworkStream());
                     }
                     else
                     {
