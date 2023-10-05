@@ -1,9 +1,9 @@
 ﻿using ExoticServer.App;
+using ExoticServer.Classes.Server.PacketSystem;
 using Serilog;
 using System;
 using System.Buffers;
 using System.IO;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,11 +21,15 @@ namespace ExoticServer.Classes.Server
         // This will store a reference to the task handling the client, as per your TcpServer design.
         public Task ClientTask { get; set; }
 
+        private PacketHandler _packetHandler;
+
         public ClientHandler(ExoticTcpServer server, TcpClient client)
         {
             _server = server;
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _clientStream = _client.GetStream();
+
+            _packetHandler = new PacketHandler();
         }
 
         public async Task HandleClientAsync(CancellationToken token)
@@ -37,12 +41,6 @@ namespace ExoticServer.Classes.Server
             {
                 while (!token.IsCancellationRequested && _client.Connected)
                 {
-                    if(_client == null || _clientStream == null)
-                    {
-                        ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
-                        break;
-                    }
-
                     if (_client.Client.Poll(0, SelectMode.SelectRead))
                     {
                         byte[] buff = new byte[1];
@@ -53,6 +51,13 @@ namespace ExoticServer.Classes.Server
                             ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
                             break;
                         }
+                    }
+
+                    Packet receivedPacket = await _packetHandler.ReceivePacketAsync(_clientStream, 4096);
+
+                    if (receivedPacket != null)
+                    {
+                        _packetHandler.ProcessPacket(receivedPacket);
                     }
                 }
             }

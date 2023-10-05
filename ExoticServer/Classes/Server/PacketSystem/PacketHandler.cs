@@ -3,20 +3,14 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server.PacketSystem
 {
     public class PacketHandler
     {
-        private long lastSequenceNumber = 0;
-        private long expectedSequenceNumber = 1;
-        private SortedList<long, Packet> receivedPackets = new SortedList<long, Packet>();
-
         private Dictionary<int, IPacketHandler> packetHandlers = new Dictionary<int, IPacketHandler>();
 
         private Dictionary<string, int> rateLimits = new Dictionary<string, int>();
@@ -73,8 +67,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
             return new Packet
             {
                 Data = data,
-                SequenceNumber = ++lastSequenceNumber,
-                // ... other fields
             };
         }
 
@@ -150,107 +142,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
         }
 
-        public List<Packet> SegmentPacket(Packet largePacket, int maxPacketSize)
-        {
-            try
-            {
-                List<Packet> packetSegments = new List<Packet>();
-                byte[] largeData = largePacket.Data;
-                Guid fragmentID = Guid.NewGuid(); // Unique ID for this set of fragments
-
-                for (int i = 0; i < largeData.Length; i += maxPacketSize)
-                {
-                    Packet segment = new Packet
-                    {
-                        // Copy metadata from the original packet
-                        PacketType = largePacket.PacketType,
-                        SequenceNumber = largePacket.SequenceNumber,
-                        Timestamp = DateTime.UtcNow,
-
-                        // Set fragment-specific fields
-                        IsFragmented = true,
-                        FragmentID = fragmentID,
-
-                        // Extract a segment of data
-                        Data = new byte[Math.Min(maxPacketSize, largeData.Length - i)]
-                    };
-                    Array.Copy(largeData, i, segment.Data, 0, segment.Data.Length);
-
-                    packetSegments.Add(segment);
-                }
-
-                return packetSegments;
-            }
-            catch (Exception ex)
-            {
-                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SegmentPacket(): General Error: {ex.Message}");
-                return null;
-            }
-        }
-
-        public Packet ReassemblePacket(List<Packet> packetSegments)
-        {
-            try
-            {
-                if (packetSegments == null || !packetSegments.Any())
-                {
-                    return null;
-                }
-
-                // Validate that all segments belong to the same FragmentID
-                Guid fragmentID = packetSegments[0].FragmentID;
-
-                if (packetSegments.Any(p => p.FragmentID != fragmentID))
-                {
-                    MessageBox.Show("Error: Mismatched Fragment IDs");
-                    return null;
-                }
-
-                // Combine all segment data into one large data array
-                int totalSize = packetSegments.Sum(p => p.Data.Length);
-                byte[] largeData = new byte[totalSize];
-                int offset = 0;
-
-                foreach (Packet segment in packetSegments)
-                {
-                    Array.Copy(segment.Data, 0, largeData, offset, segment.Data.Length);
-                    offset += segment.Data.Length;
-                }
-
-                // Create the reassembled packet
-                Packet largePacket = new Packet
-                {
-                    // Copy metadata from one of the segments
-                    PacketType = packetSegments[0].PacketType,
-                    SequenceNumber = packetSegments[0].SequenceNumber,
-                    Timestamp = DateTime.UtcNow,
-
-                    // Set the reassembled data
-                    Data = largeData,
-
-                    // Clear fragment-specific fields
-                    IsFragmented = false,
-                    FragmentID = Guid.Empty
-                };
-
-                return largePacket;
-            }
-            catch (Exception ex)
-            {
-                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - ReassemblePacket(): General Error: {ex.Message}");
-                return null;
-            }
-        }
-
-        public void ProcessPackets()
-        {
-            foreach (var packet in receivedPackets.Values)
-            {
-                ProcessPacket(packet);  // Assume ProcessPacket is your method to handle each packet
-            }
-            receivedPackets.Clear();
-        }
-
         public void ProcessPacket(Packet packet)
         {
             if (packetHandlers.TryGetValue(packet.PacketType, out IPacketHandler handler))
@@ -260,25 +151,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
             else
             {
                  ChronicApplication.Instance.Logger.Warning($"Unknown packet type {packet.PacketType}");
-            }
-        }
-
-        public void ReceiveAndOrderPacket(Packet receivedPacket)
-        {
-            receivedPackets.Add(receivedPacket.SequenceNumber, receivedPacket);
-        }
-
-        public void CheckForMissingPackets()
-        {
-            foreach (var packet in receivedPackets.Values)
-            {
-                if (packet.SequenceNumber != expectedSequenceNumber)
-                {
-                     ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - CheckForMissingPackets(): Missing packets from {expectedSequenceNumber} to {packet.SequenceNumber - 1}");
-                    // Here, you can add code to request retransmission of missing packets
-                }
-
-                expectedSequenceNumber = packet.SequenceNumber + 1;
             }
         }
 
@@ -300,7 +172,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             // Check rate limit
             if (rateLimits[clientId] >= MaxRequestsPerMinute)
             {
-                 ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - IsRateLimited(): Client {clientId} is rate-limited.");
+                ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - IsRateLimited(): Client {clientId} is rate-limited.");
                 return true;
             }
 
@@ -309,4 +181,5 @@ namespace ExoticServer.Classes.Server.PacketSystem
             return false;
         }
     }
+}
 }
