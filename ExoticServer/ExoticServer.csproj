@@ -62,6 +62,7 @@
     <Compile Include="App\UI\FormHandler.cs" />
     <Compile Include="Classes\Server\ClientHandler.cs" />
     <Compile Include="Classes\Server\ExoticTcpServer.cs" />
+    <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
     <Compile Include="Forms\MainServerForm.cs">
       <SubType>Form</SubType>
     </Compile>
