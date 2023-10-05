@@ -1,8 +1,10 @@
 ﻿using ExoticServer.App;
 using ExoticServer.Classes.Server.PacketSystem;
+using ExoticServer.Classes.Utils;
 using Serilog;
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -24,6 +26,10 @@ namespace ExoticServer.Classes.Server
         public Task ClientTask { get; set; }
 
         private PacketHandler _packetHandler;
+        private RateLimiter _rateLimiter;
+
+        private bool hasSentTooManyRequestPacket;
+
 
         public ClientHandler(ExoticTcpServer server, TcpClient client)
         {
@@ -34,6 +40,7 @@ namespace ExoticServer.Classes.Server
             _clientStream = _client.GetStream();
 
             _packetHandler = new PacketHandler();
+            _rateLimiter = new RateLimiter();
         }
 
         public async Task HandleClientAsync(CancellationToken token)
@@ -53,6 +60,25 @@ namespace ExoticServer.Classes.Server
                         {
                             // Client disconnected
                             ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
+                            break;
+                        }
+                    }
+
+                    if (_rateLimiter.IsRateLimited(ClientId))
+                    {
+                        if (!hasSentTooManyRequestPacket)
+                        {
+                            ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - HandleClientAsync(): Client({ClientId}) is rate-limited.");
+
+                            PacketUtils.SendTooManyRequestPacket(ChronicApplication.Instance.TcpServer.ServerPacketHandler, _clientStream);
+                            hasSentTooManyRequestPacket = true;
+                        }
+                        else
+                        {
+                            ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - HandleClientAsync(): Client disconnected for security reasons.");
+
+                            PacketUtils.SendSecurityDisconnectionPacket(ChronicApplication.Instance.TcpServer.ServerPacketHandler, _clientStream);
+
                             break;
                         }
                     }

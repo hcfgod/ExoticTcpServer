@@ -160,6 +160,8 @@ namespace ExoticServer.Classes.Server
             return _clients;
         }
 
+        public PacketHandler ServerPacketHandler { get { return _serverPacketHandler; } }
+
         private void CleanupCompletedTasks()
         {
             foreach (var key in _clientTasks.Keys)

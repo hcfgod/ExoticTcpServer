@@ -26,7 +26,7 @@ namespace ExoticServer.App
             _tcpServer = new ExoticTcpServer(24000);
 
             _logger = new LoggerConfiguration()
-                        .WriteTo.File("D:/Coding/Projects/C#/ServerAndClient Projects/ChronicTcpServer/ChronicTcpServer/ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File("D:/Coding/Projects/C#/ServerAndClient Projects/ExoticServer/ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
                         .CreateLogger();
 
             _logger.Information($"(ChronicApplication.cs) - ChronicApplication(): App Started!");
@@ -63,5 +63,7 @@ namespace ExoticServer.App
 
         public FormHandler FormHandler { get { return _formHandler; } }
         public ILogger Logger { get { return _logger;} }
+
+        public ExoticTcpServer TcpServer { get { return _tcpServer; } }
     }
 }
