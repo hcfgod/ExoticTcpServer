@@ -1,10 +1,12 @@
-﻿using Serilog;
+﻿using ExoticServer.App;
+using Serilog;
 using System;
 using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server
 {
@@ -36,6 +38,9 @@ namespace ExoticServer.Classes.Server
                 while (!token.IsCancellationRequested)
                 {
                     // Process Packet Here
+
+                    MessageBox.Show("awd");
+                    break;
                 }
             }
             catch (IOException ioEx) when (ioEx.InnerException is SocketException)
@@ -45,10 +50,12 @@ namespace ExoticServer.Classes.Server
             catch (Exception ex)
             {
                 // Handle other exceptions as necessary.
-                Log.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): {ex.Message}");
+                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): {ex.Message}");
             }
             finally
             {
+                MessageBox.Show("Finally");
+
                 pool.Return(dataBuffer);
                 DisconnectedClient();
             }
@@ -56,15 +63,16 @@ namespace ExoticServer.Classes.Server
 
         public void DisconnectedClient()
         {
-            if(_client != null)
-{
-                _client.Close();
-                _client = null;
-            }
             if (_clientStream != null)
             {
                 _clientStream.Dispose();
                 _clientStream = null;
+            }
+
+            if (_client != null)
+{
+                _client.Close();
+                _client = null;
             }
         }
 

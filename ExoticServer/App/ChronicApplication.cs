@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 
 using ExoticServer.App.UI;
-
+using ExoticServer.Classes.Server;
 using Serilog;
 
 namespace ExoticServer.App
@@ -14,19 +14,27 @@ namespace ExoticServer.App
         private readonly FormHandler _formHandler;
         private readonly ILogger _logger;
 
+        private ExoticTcpServer _tcpServer;
+
         public ChronicApplication()
         {
             if(Instance == null)
                 Instance = this;
 
             _formHandler = new FormHandler();
+
+            _tcpServer = new ExoticTcpServer(24000);
+
             _logger = new LoggerConfiguration()
-                        .WriteTo.File("ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File("D:/Coding/Projects/C#/ServerAndClient Projects/ChronicTcpServer/ChronicTcpServer/ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
                         .CreateLogger();
+
+            _logger.Information($"(ChronicApplication.cs) - ChronicApplication(): App Started!");
         }
 
-        public void Initialize()
+        public async void Initialize()
         {
+            await _tcpServer.StartServer();
             ShowForm(_formHandler.MainForm);
         }
 
@@ -47,6 +55,8 @@ namespace ExoticServer.App
 
         public void Shutdown()
         {
+            _tcpServer.StopServer();
+
             Application.Exit();
             Environment.Exit(0);
         }

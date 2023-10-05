@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using ExoticServer.App;
+using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server
 {
@@ -23,7 +25,7 @@ namespace ExoticServer.Classes.Server
         {
             if (!IsValidServerPort(port))
             {
-                Log.Logger.Error("(ExoticTcpServer) ExoticTcpServer(): Invalid server port. ", nameof(port));
+                ChronicApplication.Instance.Logger.Error("(ExoticTcpServer) ExoticTcpServer(): Invalid server port. ", nameof(port));
                 throw new ArgumentException("Invalid server port. ", nameof(port));
             }
 
@@ -34,14 +36,14 @@ namespace ExoticServer.Classes.Server
         {
             if (_state == ServerState.Running)
             {
-                Log.Logger.Error("(ExoticTcpServer) StartServer: Server is already running.");
+                ChronicApplication.Instance.Logger.Error("(ExoticTcpServer) StartServer: Server is already running.");
                 throw new InvalidOperationException("Server is already running.");
             }
 
             _serverTcpListener = _serverTcpListener ?? new TcpListener(IPAddress.Any, _port);
             _serverTcpListener.Start();
             _state = ServerState.Running;
-            Log.Logger.Information($"(ExoticTcpServer) StartServer - Started Server On Port: " + _port);
+             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StartServer - Started Server On Port: " + _port);
             await ListenForClients(_cts.Token);
         }
 
@@ -49,7 +51,7 @@ namespace ExoticServer.Classes.Server
         {
             if (_state == ServerState.Stopped)
             {
-                Log.Logger.Error("(ExoticTcpServer) StopServer: Server is already stopped");
+                 ChronicApplication.Instance.Logger.Error("(ExoticTcpServer) StopServer: Server is already stopped");
                 throw new InvalidOperationException("Server is already stopped.");
             }
 
@@ -62,7 +64,7 @@ namespace ExoticServer.Classes.Server
             _serverTcpListener.Stop();
             _state = ServerState.Stopped;
 
-            Log.Logger.Information($"(ExoticTcpServer) StopServer - Stopped Server On Port: " + _port);
+             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StopServer - Stopped Server On Port: " + _port);
 
         }
 
@@ -83,7 +85,7 @@ namespace ExoticServer.Classes.Server
                 _clientTasks.TryRemove(clientKey, out _);
             }
 
-            Log.Logger.Information($"(ExoticTcpServer) HandleClientDisconnection - Client Disconnected.");
+             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) HandleClientDisconnection - Client Disconnected.");
         }
 
         private async Task ListenForClients(CancellationToken token)
@@ -98,6 +100,9 @@ namespace ExoticServer.Classes.Server
                     if (_serverTcpListener.Pending())
                     {
                         TcpClient newClient = await _serverTcpListener.AcceptTcpClientAsync();
+
+                        ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync - Client Connected");
+
                         ClientHandler clientHandler = new ClientHandler(this, newClient);
 
                         Task clientTask = clientHandler.HandleClientAsync(token);
@@ -106,8 +111,6 @@ namespace ExoticServer.Classes.Server
                         string clientKey = newClient.Client.RemoteEndPoint.ToString();
                         _clients.TryAdd(clientKey, clientHandler);
                         _clientTasks.TryAdd(clientKey, clientTask);
-
-                        Log.Logger.Information($"(ExoticTcpServer) ListenForClientsAsync - Client Connected");
                     }
                     else
                     {
@@ -117,12 +120,12 @@ namespace ExoticServer.Classes.Server
                 catch (SocketException socketEx)
                 {
                     // Handle socket exceptions, which might occur if the listener gets closed.
-                    Log.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Socket error: {socketEx.Message}");
+                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Socket error: {socketEx.Message}");
                 }
                 catch (Exception ex)
                 {
                     // Handle other general exceptions.
-                    Log.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Listening error: {ex.Message}");
+                     ChronicApplication.Instance.Logger.Error($"(ExoticTcpServer) ListenForClientsAsync - Listening error: {ex.Message}");
                 }
             }
         }

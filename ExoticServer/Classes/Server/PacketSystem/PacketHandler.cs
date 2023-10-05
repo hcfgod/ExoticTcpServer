@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using Serilog;
+﻿using ExoticServer.App;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,13 +38,13 @@ namespace ExoticServer.Classes.Server.PacketSystem
             catch (JsonException jsonEx)
             {
                 // Handle JSON serialization errors
-                Log.Error($"(PacketHandler.cs) - SerializePacket(): JSON Serialization Error: {jsonEx.Message}");
+                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SerializePacket(): JSON Serialization Error: {jsonEx.Message}");
                 return null;
             }
             catch (Exception ex)
             {
                 // Handle other errors
-                Log.Error($"(PacketHandler.cs) - SerializePacket(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SerializePacket(): General Error: {ex.Message}");
                 return null;
             }
         }
@@ -58,12 +58,12 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             catch (JsonException jsonEx)
             {
-                Log.Error($"(PacketHandler.cs) - DeserializePacket(): JSON Deserialization Error: {jsonEx.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - DeserializePacket(): JSON Deserialization Error: {jsonEx.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Log.Error($"(PacketHandler.cs) - DeserializePacket(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - DeserializePacket(): General Error: {ex.Message}");
                 return null;
             }
         }
@@ -99,17 +99,17 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             catch (IOException ioEx)
             {
-                Log.Error($"(PacketHandler.cs) - SendPacketAsync(): IO Error: {ioEx.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): IO Error: {ioEx.Message}");
                 return false;
             }
             catch (ObjectDisposedException objDisposedEx)
             {
-                Log.Error($"(PacketHandler.cs) - SendPacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
                 return false;
             }
             catch (Exception ex)
             {
-                Log.Error($"(PacketHandler.cs) - SendPacketAsync(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): General Error: {ex.Message}");
                 return false;
             }
         }
@@ -135,17 +135,17 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             catch (IOException ioEx)
             {
-                Log.Error($"(PacketHandler.cs) - ReceivePacketAsync(): IO Error: {ioEx.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - ReceivePacketAsync(): IO Error: {ioEx.Message}");
                 return null;
             }
             catch (ObjectDisposedException objDisposedEx)
             {
-                Log.Error($"(PacketHandler.cs) - ReceivePacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - ReceivePacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Log.Error($"(PacketHandler.cs) - ReceivePacketAsync(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - ReceivePacketAsync(): General Error: {ex.Message}");
                 return null;
             }
         }
@@ -183,7 +183,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             catch (Exception ex)
             {
-                Log.Error($"(PacketHandler.cs) - SegmentPacket(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SegmentPacket(): General Error: {ex.Message}");
                 return null;
             }
         }
@@ -237,7 +237,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             catch (Exception ex)
             {
-                Log.Error($"(PacketHandler.cs) - ReassemblePacket(): General Error: {ex.Message}");
+                 ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - ReassemblePacket(): General Error: {ex.Message}");
                 return null;
             }
         }
@@ -259,7 +259,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
             else
             {
-                Log.Warning($"Unknown packet type {packet.PacketType}");
+                 ChronicApplication.Instance.Logger.Warning($"Unknown packet type {packet.PacketType}");
             }
         }
 
@@ -274,7 +274,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             {
                 if (packet.SequenceNumber != expectedSequenceNumber)
                 {
-                    Log.Warning($"(PacketHandler.cs) - CheckForMissingPackets(): Missing packets from {expectedSequenceNumber} to {packet.SequenceNumber - 1}");
+                     ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - CheckForMissingPackets(): Missing packets from {expectedSequenceNumber} to {packet.SequenceNumber - 1}");
                     // Here, you can add code to request retransmission of missing packets
                 }
 
@@ -300,7 +300,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             // Check rate limit
             if (rateLimits[clientId] >= MaxRequestsPerMinute)
             {
-                Log.Warning($"(PacketHandler.cs) - IsRateLimited(): Client {clientId} is rate-limited.");
+                 ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - IsRateLimited(): Client {clientId} is rate-limited.");
                 return true;
             }
 

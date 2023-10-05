@@ -1,0 +1,14 @@
+2023-10-05 04:36:05.363 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:36:05.382 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 23000
+2023-10-05 04:36:32.482 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:36:32.499 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 23000
+2023-10-05 04:37:42.685 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:37:42.702 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 23000
+2023-10-05 04:38:26.271 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:38:26.291 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 23000
+2023-10-05 04:40:22.777 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:40:22.795 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 23000
+2023-10-05 04:41:07.280 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:41:07.297 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 24000
+2023-10-05 04:41:40.928 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-05 04:41:41.955 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 24000
