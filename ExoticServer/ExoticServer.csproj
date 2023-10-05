@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.3.0.1\lib\net471\Serilog.dll</HintPath>
     </Reference>
@@ -63,6 +66,7 @@
     <Compile Include="Classes\Server\ClientHandler.cs" />
     <Compile Include="Classes\Server\ExoticTcpServer.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
+    <Compile Include="Classes\Server\PacketSystem\PacketHandler.cs" />
     <Compile Include="Forms\MainServerForm.cs">
       <SubType>Form</SubType>
     </Compile>
