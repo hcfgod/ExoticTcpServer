@@ -13,6 +13,21 @@ namespace ExoticServer.Classes.Server.PacketSystem
 {
     public class PacketHandler
     {
+        private long lastSequenceNumber = 0;
+        private long expectedSequenceNumber = 1;
+        private SortedList<long, Packet> receivedPackets = new SortedList<long, Packet>();
+
+        private Dictionary<int, IPacketHandler> packetHandlers = new Dictionary<int, IPacketHandler>();
+
+        private Dictionary<string, int> rateLimits = new Dictionary<string, int>();
+        private Dictionary<string, DateTime> lastRequestTimes = new Dictionary<string, DateTime>();
+        private const int MaxRequestsPerMinute = 60; // Set your limit here
+
+        public PacketHandler()
+        {
+            // Initialize packet handlers
+        }
+
         public byte[] SerializePacket(Packet packet)
         {
             try
@@ -53,8 +68,23 @@ namespace ExoticServer.Classes.Server.PacketSystem
             }
         }
 
-        public async Task<bool> SendPacketAsync(Packet packet, NetworkStream stream)
+        public Packet CreateNewPacket(byte[] data)
         {
+            return new Packet
+            {
+                Data = data,
+                SequenceNumber = ++lastSequenceNumber,
+                // ... other fields
+            };
+        }
+
+        public async Task<bool> SendPacketAsync(Packet packet, NetworkStream stream, string clientId)
+        {
+            if (IsRateLimited(clientId))
+            {
+                return false;
+            }
+
             try
             {
                 byte[] data = SerializePacket(packet);
@@ -210,6 +240,73 @@ namespace ExoticServer.Classes.Server.PacketSystem
                 Log.Error($"(PacketHandler.cs) - ReassemblePacket(): General Error: {ex.Message}");
                 return null;
             }
+        }
+
+        public void ProcessPackets()
+        {
+            foreach (var packet in receivedPackets.Values)
+            {
+                ProcessPacket(packet);  // Assume ProcessPacket is your method to handle each packet
+            }
+            receivedPackets.Clear();
+        }
+
+        public void ProcessPacket(Packet packet)
+        {
+            if (packetHandlers.TryGetValue(packet.PacketType, out IPacketHandler handler))
+            {
+                handler.Handle(packet);
+            }
+            else
+            {
+                Log.Warning($"Unknown packet type {packet.PacketType}");
+            }
+        }
+
+        public void ReceiveAndOrderPacket(Packet receivedPacket)
+        {
+            receivedPackets.Add(receivedPacket.SequenceNumber, receivedPacket);
+        }
+
+        public void CheckForMissingPackets()
+        {
+            foreach (var packet in receivedPackets.Values)
+            {
+                if (packet.SequenceNumber != expectedSequenceNumber)
+                {
+                    Log.Warning($"(PacketHandler.cs) - CheckForMissingPackets(): Missing packets from {expectedSequenceNumber} to {packet.SequenceNumber - 1}");
+                    // Here, you can add code to request retransmission of missing packets
+                }
+
+                expectedSequenceNumber = packet.SequenceNumber + 1;
+            }
+        }
+
+        public bool IsRateLimited(string clientId)
+        {
+            if (!rateLimits.ContainsKey(clientId))
+            {
+                rateLimits[clientId] = 0;
+                lastRequestTimes[clientId] = DateTime.UtcNow;
+            }
+
+            // Check if the time window has passed and reset
+            if ((DateTime.UtcNow - lastRequestTimes[clientId]).TotalMinutes >= 1)
+            {
+                rateLimits[clientId] = 0;
+                lastRequestTimes[clientId] = DateTime.UtcNow;
+            }
+
+            // Check rate limit
+            if (rateLimits[clientId] >= MaxRequestsPerMinute)
+            {
+                Log.Warning($"(PacketHandler.cs) - IsRateLimited(): Client {clientId} is rate-limited.");
+                return true;
+            }
+
+            // Increment the rate limit counter
+            rateLimits[clientId]++;
+            return false;
         }
     }
 }
