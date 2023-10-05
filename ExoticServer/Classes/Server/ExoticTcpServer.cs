@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ExoticServer.App;
-using ExoticServer.Classes.Server.PacketSystem;
 
 namespace ExoticServer.Classes.Server
 {
@@ -20,8 +19,6 @@ namespace ExoticServer.Classes.Server
 
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        private PacketHandler _serverPacketHandler;
-
         public ExoticTcpServer(int port)
         {
             if (!IsValidServerPort(port))
@@ -31,8 +28,6 @@ namespace ExoticServer.Classes.Server
             }
 
             _port = port;
-
-            _serverPacketHandler = new PacketHandler();
         }
 
         public async Task StartServer()
@@ -44,9 +39,12 @@ namespace ExoticServer.Classes.Server
             }
 
             _serverTcpListener = _serverTcpListener ?? new TcpListener(IPAddress.Any, _port);
+
             _serverTcpListener.Start();
             _state = ServerState.Running;
-             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StartServer - Started Server On Port: " + _port);
+
+            ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StartServer - Started Server On Port: " + _port);
+
             await ListenForClients(_cts.Token);
         }
 
@@ -54,7 +52,7 @@ namespace ExoticServer.Classes.Server
         {
             if (_state == ServerState.Stopped)
             {
-                 ChronicApplication.Instance.Logger.Error("(ExoticTcpServer) StopServer: Server is already stopped");
+                ChronicApplication.Instance.Logger.Error("(ExoticTcpServer) StopServer: Server is already stopped");
                 throw new InvalidOperationException("Server is already stopped.");
             }
 
@@ -67,28 +65,8 @@ namespace ExoticServer.Classes.Server
             _serverTcpListener.Stop();
             _state = ServerState.Stopped;
 
-             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StopServer - Stopped Server On Port: " + _port);
+            ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) StopServer - Stopped Server On Port: " + _port);
 
-        }
-
-        public void Dispose()
-        {
-            _serverTcpListener?.Stop();
-            _serverTcpListener = null;
-            _cts.Dispose();
-        }
-
-        public void HandleClientDisconnection(ClientHandler clientHandler)
-        {
-            // Remove the associated task.
-            if (clientHandler.ClientTask != null)
-            {
-                string clientKey = clientHandler.GetTcpClient().Client.RemoteEndPoint.ToString();
-                _clients.TryRemove(clientKey, out _);
-                _clientTasks.TryRemove(clientKey, out _);
-            }
-
-             ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) HandleClientDisconnection - Client Disconnected.");
         }
 
         private async Task ListenForClients(CancellationToken token)
@@ -125,7 +103,7 @@ namespace ExoticServer.Classes.Server
                         Task clientTask = clientHandler.HandleClientAsync(token);
                         clientHandler.ClientTask = clientTask;
 
-                        string clientKey = newClient.Client.RemoteEndPoint.ToString();
+                        string clientKey = clientHandler.ClientId;
 
                         _clients.TryAdd(clientKey, clientHandler);
                         _clientTasks.TryAdd(clientKey, clientTask);
@@ -148,9 +126,27 @@ namespace ExoticServer.Classes.Server
             }
         }
 
+        public void HandleClientDisconnection(ClientHandler clientHandler)
+        {
+            // Remove the associated task.
+            if (clientHandler.ClientTask != null)
+            {
+                string clientKey = clientHandler.ClientId;
+                _clients.TryRemove(clientKey, out _);
+                _clientTasks.TryRemove(clientKey, out _);
+            }
+
+            ChronicApplication.Instance.Logger.Information($"(ExoticTcpServer) HandleClientDisconnection - Client Disconnected.");
+        }
+
         private bool IsValidServerPort(int port)
         {
             return port >= 1024 && port <= 65535;
+        }
+
+        public ConcurrentDictionary<string, ClientHandler> GetClients()
+        {
+            return _clients;
         }
 
         private void CleanupCompletedTasks()
@@ -159,15 +155,16 @@ namespace ExoticServer.Classes.Server
             {
                 if (_clientTasks.TryGetValue(key, out Task task) && task.IsCompleted)
                 {
-                    task.Dispose();
                     _clientTasks.TryRemove(key, out _);
                 }
             }
         }
 
-        public ConcurrentDictionary<string, ClientHandler> GetClients()
+        public void Dispose()
         {
-            return _clients;
+            _serverTcpListener?.Stop();
+            _serverTcpListener = null;
+            _cts.Dispose();
         }
     }
 

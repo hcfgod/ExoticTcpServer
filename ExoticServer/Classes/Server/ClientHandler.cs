@@ -12,6 +12,8 @@ namespace ExoticServer.Classes.Server
 {
     public class ClientHandler : IDisposable
     {
+        public string ClientId { get; private set; }
+
         private ExoticTcpServer _server;
         private TcpClient _client;
         private NetworkStream _clientStream;
@@ -25,6 +27,8 @@ namespace ExoticServer.Classes.Server
 
         public ClientHandler(ExoticTcpServer server, TcpClient client)
         {
+            this.ClientId = Guid.NewGuid().ToString();
+
             _server = server;
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _clientStream = _client.GetStream();
@@ -101,6 +105,11 @@ namespace ExoticServer.Classes.Server
         public TcpClient GetTcpClient()
         {
             return _client;
+        }
+
+        public NetworkStream GetNetworkStream()
+        {
+            return _clientStream;
         }
 
         public void Dispose()

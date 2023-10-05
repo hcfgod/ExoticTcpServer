@@ -1,4 +1,5 @@
 ﻿using ExoticServer.App;
+using ExoticServer.Classes.Server.PacketSystem.Packets;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server.PacketSystem
 {
@@ -21,6 +21,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
         public PacketHandler()
         {
             // Initialize packet handlers
+            packetHandlers.Add(1, new TestPacket());
         }
 
         public byte[] SerializePacket(Packet packet)

@@ -68,6 +68,7 @@
     <Compile Include="Classes\Server\PacketSystem\IPacketHandler.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
     <Compile Include="Classes\Server\PacketSystem\PacketHandler.cs" />
+    <Compile Include="Classes\Server\PacketSystem\Packets\TestPacket.cs" />
     <Compile Include="Forms\MainServerForm.cs">
       <SubType>Form</SubType>
     </Compile>
