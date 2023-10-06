@@ -222,6 +222,8 @@ namespace ExoticServer.Classes.Server.PacketSystem
                         continue;
                     }
 
+                    ChronicApplication.Instance.Logger.Information($"Received packet with ID: {deserializedPacket.PacketID}, Sequence: {deserializedPacket.SequenceNumber}");
+
                     if (deserializedPacket.IsFragmented)
                     {
                         if (!packetFragments.ContainsKey(deserializedPacket.FragmentID.ToString()))
@@ -230,10 +232,11 @@ namespace ExoticServer.Classes.Server.PacketSystem
                         }
 
                         packetFragments[deserializedPacket.FragmentID.ToString()].Add(deserializedPacket);
-                        HandleMissingOrOutOfOrderFragments(deserializedPacket.FragmentID.ToString());
 
                         if (IsLastFragment(deserializedPacket))
                         {
+                            HandleMissingOrOutOfOrderFragments(deserializedPacket.FragmentID.ToString());
+
                             receivedPackets.Add(ReassemblePacket(deserializedPacket.FragmentID.ToString()));
                         }
                     }
@@ -328,7 +331,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
                 {
                     // Logic to handle missing fragments
                     string missingFragmentsStr = string.Join(", ", missingFragments);
-                    ChronicApplication.Instance.Logger.Warning($"Missing fragments: {missingFragmentsStr}");
+                    ChronicApplication.Instance.Logger.Warning($"Missing fragments for FragmentID: {fragmentID} are {missingFragmentsStr}");
                     // Optionally, request these specific fragments from the client again
                 }
                 else

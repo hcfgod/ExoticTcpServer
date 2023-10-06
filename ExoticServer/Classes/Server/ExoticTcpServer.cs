@@ -118,7 +118,9 @@ namespace ExoticServer.Classes.Server
                         // Send the client their client id
                         byte[] clientKeyData = Encoding.UTF8.GetBytes(clientKey);
                         Packet clientIDPacket = _serverPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");
-                        await _serverPacketHandler.SendPacketAsync(clientIDPacket, clientHandler.GetNetworkStream(), 5);
+                        await _serverPacketHandler.SendPacketAsync(clientIDPacket, clientHandler.GetNetworkStream());
+
+                        MessageBox.Show(clientKey);
                     }
                     else
                     {
