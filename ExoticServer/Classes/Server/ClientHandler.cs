@@ -5,6 +5,7 @@ using Serilog;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -76,11 +77,14 @@ namespace ExoticServer.Classes.Server
                         }
                     }
 
-                    Packet receivedPacket = await _packetHandler.ReceivePacketAsync(_clientStream, dataBuffer);
+                    List<Packet> receivedPackets = await _packetHandler.ReceivePacketAsync(_clientStream, dataBuffer);
 
-                    if (receivedPacket != null)
+                    if (receivedPackets != null)
                     {
-                        _packetHandler.ProcessPacket(receivedPacket);
+                        foreach (var receivedPacket in receivedPackets)
+                        {
+                            _packetHandler.ProcessPacket(receivedPacket);
+                        }
                     }
                 }
             }

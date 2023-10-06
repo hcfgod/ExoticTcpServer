@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ExoticServer.App;
 using ExoticServer.Classes.Server.PacketSystem;
 using System.Text;
+using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server
 {
@@ -117,7 +118,7 @@ namespace ExoticServer.Classes.Server
                         // Send the client their client id
                         byte[] clientKeyData = Encoding.UTF8.GetBytes(clientKey);
                         Packet clientIDPacket = _serverPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");
-                        await _serverPacketHandler.SendPacketAsync(clientIDPacket, clientHandler.GetNetworkStream());
+                        await _serverPacketHandler.SendPacketAsync(clientIDPacket, clientHandler.GetNetworkStream(), 5);
                     }
                     else
                     {

@@ -20,6 +20,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
         // Flow Control
         public bool IsFragmented { get; set; }
         public Guid FragmentID { get; set; }
+        public int TotalFragments { get; set; }
 
         // Error Handling
         public int RetryCount { get; set; }
