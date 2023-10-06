@@ -9,7 +9,7 @@ namespace ExoticServer.Classes.Server
         private readonly ConcurrentDictionary<string, int> rateLimits = new ConcurrentDictionary<string, int>();
         private readonly ConcurrentDictionary<string, DateTime> lastRequestTimes = new ConcurrentDictionary<string, DateTime>();
 
-        private const int MaxRequestsPerMinute = 50; // Set your limit here
+        private const int MaxRequestsPerMinute = 0; // Set your limit here
 
         private const int RateLimitDurationSeconds = 60;
 

@@ -30,6 +30,10 @@ namespace ExoticServer.Classes.Server
 
         private bool hasSentTooManyRequestPacket;
 
+        ~ClientHandler()
+        {
+            Dispose(false);
+        }
 
         public ClientHandler(ExoticTcpServer server, TcpClient client)
         {
@@ -52,17 +56,8 @@ namespace ExoticServer.Classes.Server
             {
                 while (!token.IsCancellationRequested && _client.Connected)
                 {
-                    if (_client.Client.Poll(0, SelectMode.SelectRead))
-                    {
-                        byte[] buff = new byte[1];
-
-                        if (_client.Client.Receive(buff, SocketFlags.Peek) == 0)
-                        {
-                            // Client disconnected
-                            ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
-                            break;
-                        }
-                    }
+                    if (CheckForClientDisconnection())
+                        break;
 
                     if (_rateLimiter.IsRateLimited(ClientId))
                     {
@@ -78,8 +73,6 @@ namespace ExoticServer.Classes.Server
                             ChronicApplication.Instance.Logger.Warning($"(PacketHandler.cs) - HandleClientAsync(): Client disconnected for security reasons.");
 
                             PacketUtils.SendSecurityDisconnectionPacket(ChronicApplication.Instance.TcpServer.ServerPacketHandler, _clientStream);
-
-                            break;
                         }
                     }
 
@@ -91,20 +84,43 @@ namespace ExoticServer.Classes.Server
                     }
                 }
             }
-            catch (IOException ioEx) when (ioEx.InnerException is SocketException)
-            {
-                // Handle potential socket exceptions here. This might occur if the client forcibly closes the connection.
-                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): Client Forcefully Closed The Connection");
-            }
             catch (Exception ex)
             {
-                // Handle other exceptions as necessary.
-                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): {ex.Message}");
+                HandleExceptions(ex);
             }
             finally
             {
                 pool.Return(dataBuffer);
             }
+        }
+
+        private void HandleExceptions(Exception ex)
+        {
+            if (ex is IOException ioEx && ioEx.InnerException is SocketException)
+            {
+                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): Client Forcefully Closed The Connection");
+            }
+            else
+            {
+                ChronicApplication.Instance.Logger.Information($"(ClientHandler.cs) - HandleClientAsync(): {ex.Message}");
+            }
+        }
+
+        private bool CheckForClientDisconnection()
+        {
+            if (_client.Client.Poll(0, SelectMode.SelectRead))
+            {
+                byte[] buff = new byte[1];
+
+                if (_client.Client.Receive(buff, SocketFlags.Peek) == 0)
+                {
+                    // Client disconnected
+                    ChronicApplication.Instance.Logger.Information("(ClientHandler.cs) HandleClientAsync(): Client Disconnected");
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void DisconnectClient()
@@ -156,11 +172,6 @@ namespace ExoticServer.Classes.Server
 
                 _disposed = true;
             }
-        }
-
-        ~ClientHandler()
-        {
-            Dispose(false);
         }
     }
 }

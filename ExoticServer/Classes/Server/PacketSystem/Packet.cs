@@ -23,7 +23,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
 
         // Error Handling
         public int RetryCount { get; set; }
-        public bool AckRequired { get; set; }
 
         // Additional fields
         public string Version { get; set; }
