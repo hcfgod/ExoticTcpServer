@@ -4,10 +4,10 @@ using ExoticServer.Classes.Utils;
 using Serilog;
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,6 +55,11 @@ namespace ExoticServer.Classes.Server
 
             try
             {
+                // Send the client their client id
+                byte[] clientKeyData = Encoding.UTF8.GetBytes(ClientId);
+                Packet clientIDPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");
+                await ChronicApplication.Instance.TcpServer.ServerPacketHandler.SendPacketAsync(clientIDPacket, _clientStream);
+
                 while (!token.IsCancellationRequested && _client.Connected)
                 {
                     if (CheckForClientDisconnection())
@@ -83,7 +88,7 @@ namespace ExoticServer.Classes.Server
                     {
                         foreach (var receivedPacket in receivedPackets)
                         {
-                            _packetHandler.ProcessPacket(receivedPacket);
+                            _packetHandler.ProcessPacket(receivedPacket, this);
                         }
                     }
                 }

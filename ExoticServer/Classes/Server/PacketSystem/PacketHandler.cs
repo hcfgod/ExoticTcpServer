@@ -25,6 +25,13 @@ namespace ExoticServer.Classes.Server.PacketSystem
         {
             try
             {
+                if (packet.EncryptionFlag)
+                {
+                    packet.Data = CryptoUtility.Encrypt(packet.Data);  // Your Encrypt method
+                }
+
+                packet.GenerateChecksum();
+
                 string jsonString = JsonConvert.SerializeObject(packet);
                 return Encoding.UTF8.GetBytes(jsonString);
             }
@@ -57,8 +64,25 @@ namespace ExoticServer.Classes.Server.PacketSystem
                     if (!json.EndsWith("}")) validJson = validJson + "}";
 
                     Packet packet = JsonConvert.DeserializeObject<Packet>(validJson);
+
+                    // Validate checksum
+                    string originalChecksum = packet.Checksum;
+
+                    packet.GenerateChecksum();
+
+                    if (originalChecksum != packet.Checksum)
+                    {
+                        ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - DeserializePacket(): Checksum validation failed.");
+                        return null;
+                    }
+
                     if (packet != null)
                     {
+                        if(packet.EncryptionFlag)
+                        {
+                            packet.Data = CryptoUtility.Decrypt(packet.Data);
+                        }
+
                         packets.Add(packet);
                     }
                 }
@@ -89,7 +113,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
                 EncryptionFlag = encryptionFlag,
 
                 Version = version,
-                Priority = 1,
                 ExpirationTime = DateTime.UtcNow.AddMinutes(5),
                 SenderID = "Server",
                 ReceiverID = "Client",
@@ -128,7 +151,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
                     TotalFragments = totalFragments,
 
                     Version = largePacket.Version,
-                    Priority = largePacket.Priority,
                     ExpirationTime = largePacket.ExpirationTime,
                     SenderID = largePacket.SenderID,
                     ReceiverID = largePacket.ReceiverID,
@@ -222,7 +244,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
                         continue;
                     }
 
-                    ChronicApplication.Instance.Logger.Information($"Received packet with ID: {deserializedPacket.PacketID}, Sequence: {deserializedPacket.SequenceNumber}");
+                    //ChronicApplication.Instance.Logger.Information($"Received packet with ID: {deserializedPacket.PacketID}, Sequence: {deserializedPacket.SequenceNumber}");
 
                     if (deserializedPacket.IsFragmented)
                     {
@@ -261,11 +283,11 @@ namespace ExoticServer.Classes.Server.PacketSystem
             return receivedPackets;
         }
 
-        public void ProcessPacket(Packet packet)
+        public void ProcessPacket(Packet packet, ClientHandler clientHandler)
         {
             if (packetHandlers.TryGetValue(packet.PacketType, out IPacketHandler handler))
             {
-                handler.Handle(packet);
+                handler.Handle(packet, clientHandler);
             }
             else
             {
