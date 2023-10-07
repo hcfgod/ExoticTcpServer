@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace ExoticServer.Classes.Server
 {
@@ -12,6 +13,13 @@ namespace ExoticServer.Classes.Server
         private const int MaxRequestsPerMinute = 60; // Set your limit here
 
         private const int RateLimitDurationSeconds = 60;
+
+        private Timer evictionTimer;
+
+        public RateLimiter() 
+        {
+            evictionTimer = new Timer(EvictOldEntries, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+        }
 
         public bool IsRateLimited(string clientId)
         {
@@ -48,6 +56,20 @@ namespace ExoticServer.Classes.Server
             }
 
             return TimeSpan.Zero;
+        }
+
+        private void EvictOldEntries(object state)
+        {
+            DateTime currentTime = DateTime.Now;
+
+            foreach (var entry in lastRequestTimes)
+            {
+                if ((currentTime - entry.Value).TotalSeconds > RateLimitDurationSeconds + 15)
+                {
+                    lastRequestTimes.TryRemove(entry.Key, out _);
+                    rateLimits.TryRemove(entry.Key, out _);
+                }
+            }
         }
     }
 }
