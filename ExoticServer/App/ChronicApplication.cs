@@ -23,7 +23,7 @@ namespace ExoticServer.App
 
             _formHandler = new FormHandler();
 
-            _tcpServer = new ExoticTcpServer(24000);
+            _tcpServer = new ExoticTcpServer(9000);
 
             _logger = new LoggerConfiguration()
                         .WriteTo.File("D:/Coding/Projects/C#/ServerAndClient Projects/ExoticServer/ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)

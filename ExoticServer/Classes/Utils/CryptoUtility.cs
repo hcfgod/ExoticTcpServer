@@ -5,8 +5,8 @@ using System.Text;
 
 public static class CryptoUtility
 {
-    private static readonly string key = "YourSecretKeyHere1234fgcxzasdfwa"; // 32 bytes for AES-256
-    private static readonly string iv = "1234145632167844"; // 16 bytes for AES
+    private static readonly string key = "YourSecretKeyHere1234fgcxzasdfwa"; // 32 bytes for AES-256 - Will change from hard coded value eventually
+    private static readonly string iv = "1234145632167844"; // 16 bytes for AES - Will change from hard coded value eventually
 
     public static byte[] Encrypt(byte[] data)
     {
@@ -51,4 +51,27 @@ public static class CryptoUtility
             }
         }
     }
+
+    // RSA encryption using the client's public key
+    public static byte[] EncryptWithPublicKey(byte[] data, string publicKey)
+    {
+        using (RSA rsa = RSA.Create())
+        {
+            rsa.FromXmlString(publicKey);
+            return rsa.Encrypt(data, RSAEncryptionPadding.Pkcs1);
+        }
+    }
+
+    // RSA decryption using the server's private key
+    public static byte[] DecryptWithPrivateKey(byte[] encryptedData, string privateKey)
+    {
+        using (RSA rsa = RSA.Create())
+        {
+            rsa.FromXmlString(privateKey);
+            return rsa.Decrypt(encryptedData, RSAEncryptionPadding.Pkcs1);
+        }
+    }
+
+    public static string AesKey => key;
+    public static string AesIV => iv;
 }

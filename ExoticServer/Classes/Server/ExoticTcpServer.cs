@@ -6,8 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExoticServer.App;
 using ExoticServer.Classes.Server.PacketSystem;
-using System.Text;
-using System.Windows.Forms;
+using ExoticServer.Classes.Server.Security;
 
 namespace ExoticServer.Classes.Server
 {
@@ -24,6 +23,8 @@ namespace ExoticServer.Classes.Server
 
         private PacketHandler _serverPacketHandler;
 
+        private KeyManager _serverKeyManager;
+
         public ExoticTcpServer(int port)
         {
             if (!IsValidServerPort(port))
@@ -35,6 +36,7 @@ namespace ExoticServer.Classes.Server
             _port = port;
 
             _serverPacketHandler = new PacketHandler();
+            _serverKeyManager = new KeyManager();
         }
 
         public async Task StartServer()
@@ -157,6 +159,8 @@ namespace ExoticServer.Classes.Server
         }
 
         public PacketHandler ServerPacketHandler { get { return _serverPacketHandler; } }
+
+        public KeyManager ServerKeyManager => _serverKeyManager;
 
         private void CleanupCompletedTasks()
         {

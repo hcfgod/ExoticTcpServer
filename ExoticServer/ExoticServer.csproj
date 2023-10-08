@@ -101,7 +101,9 @@
     <Compile Include="Classes\Server\PacketSystem\IPacketHandler.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
     <Compile Include="Classes\Server\PacketSystem\PacketHandler.cs" />
+    <Compile Include="Classes\Server\PacketSystem\Packets\ClientPublicKeyPacket.cs" />
     <Compile Include="Classes\Server\RateLimiter.cs" />
+    <Compile Include="Classes\Server\Security\KeyManager.cs" />
     <Compile Include="Classes\Utils\CryptoUtility.cs" />
     <Compile Include="Classes\Utils\PacketUtils.cs" />
     <Compile Include="Forms\MainServerForm.cs">
@@ -143,7 +145,7 @@
     <None Include="App\App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Classes\Server\PacketSystem\Packets\" />
+    <Folder Include="Classes\Server\Authentication\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Exit.png" />

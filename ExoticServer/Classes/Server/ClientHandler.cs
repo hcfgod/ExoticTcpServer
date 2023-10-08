@@ -55,6 +55,11 @@ namespace ExoticServer.Classes.Server
 
             try
             {
+                // Send Client Server Key
+                byte[] serverPublicKeyData = Encoding.UTF8.GetBytes(_server.ServerKeyManager.GetPublicKey());
+                Packet serverPublicKeyPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(serverPublicKeyData, "Server Public Key Packet");
+                await ChronicApplication.Instance.TcpServer.ServerPacketHandler.SendPacketAsync(serverPublicKeyPacket, _clientStream);
+
                 // Send the client their client id
                 byte[] clientKeyData = Encoding.UTF8.GetBytes(ClientId);
                 Packet clientIDPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");

@@ -1,4 +1,5 @@
 ﻿using ExoticServer.App;
+using ExoticServer.Classes.Server.PacketSystem.Packets;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -19,6 +20,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
         public PacketHandler()
         {
             // Initialize packet handlers
+            packetHandlers.TryAdd("Client Public Key Packet", new ClientPublicKeyPacket());
         }
 
         public byte[] SerializePacket(Packet packet)
