@@ -8,7 +8,7 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
 {
     public class UserRegistrationPacket : IPacketHandler
     {
-        public void Handle(Packet packet, ClientHandler clientHandler)
+        public async void Handle(Packet packet, ClientHandler clientHandler)
         {
             // Convert bytes to string
             string jsonString = Encoding.UTF8.GetString(packet.Data);
@@ -22,7 +22,7 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             UserDetails userDetails = JsonConvert.DeserializeObject<UserDetails>(userDetailsJsonString);
             UserAuthDetails userAuthDetails = JsonConvert.DeserializeObject<UserAuthDetails>(userAuthDeatilsJsonString);
 
-            if (AuthenticationService.RegisterUser(userDetails, userAuthDetails.PasswordHash))
+            if (await AuthenticationService.RegisterUser(userDetails, userAuthDetails.PasswordHash))
             {
                 // Send a successful register packet as a response
                 MessageBox.Show("Registering User!");

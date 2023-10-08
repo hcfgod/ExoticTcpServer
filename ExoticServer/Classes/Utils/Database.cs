@@ -3,6 +3,7 @@ using ExoticServer.Classes.Server.Authentication;
 using MySql.Data.MySqlClient;
 using Serilog;
 using System;
+using System.Threading.Tasks;
 
 namespace ExoticServer.Classes.Utils
 {
@@ -16,13 +17,13 @@ namespace ExoticServer.Classes.Utils
             _connectionString = connectionString;
         }
 
-        public void AddUserDetails(UserDetails user)
+        public async Task AddUserDetails(UserDetails user)
         {
             try
             {
                 _connection = new MySqlConnection(_connectionString);
 
-                _connection.Open();
+                await _connection.OpenAsync();
 
                 string query = "INSERT INTO usersdetails (UserID, Username, Email) VALUES (@UserID, @Username, @Email)";
 
@@ -31,7 +32,7 @@ namespace ExoticServer.Classes.Utils
                 cmd.Parameters.AddWithValue("@Username", user.Username);
                 cmd.Parameters.AddWithValue("@Email", user.Email);
 
-                cmd.ExecuteNonQuery();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -39,17 +40,16 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
-                _connection.Dispose();
+                await _connection.CloseAsync();
             }
         }
-        public void AddUserAuthentication(UserAuthDetails userAuthentication)
+        public async Task AddUserAuthentication(UserAuthDetails userAuthentication)
         {
             try
             {
                 _connection = new MySqlConnection(_connectionString);
 
-                _connection.Open();
+                await _connection.OpenAsync();
 
                 string query = "INSERT INTO usersauth (UserID, Username, PasswordHash, PasswordSalt) VALUES (@UserID, @Username, @PasswordHash, @PasswordSalt)";
 
@@ -59,7 +59,7 @@ namespace ExoticServer.Classes.Utils
                 cmd.Parameters.AddWithValue("@PasswordHash", userAuthentication.PasswordHash);
                 cmd.Parameters.AddWithValue("@PasswordSalt", userAuthentication.PasswordSalt);
 
-                cmd.ExecuteNonQuery();
+                await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
@@ -67,25 +67,25 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
+                await _connection.CloseAsync();
             }
         }
 
-        public UserDetails GetUserDetailsByUsername(string username)
+        public async Task<UserDetails> GetUserDetailsByUsername(string username)
         {
             try
             {
                 _connection = new MySqlConnection(_connectionString);
-                _connection.Open();
+                await _connection.OpenAsync();
 
                 string query = "SELECT * FROM usersdetails WHERE Username = @Username";
 
                 MySqlCommand cmd = new MySqlCommand(query, _connection);
                 cmd.Parameters.AddWithValue("@Username", username);
 
-                MySqlDataReader reader = cmd.ExecuteReader();
+                MySqlDataReader reader = (MySqlDataReader)await cmd.ExecuteReaderAsync();
 
-                if (reader.Read())
+                if (await reader.ReadAsync())
                 {
                     return new UserDetails
                     {
@@ -101,27 +101,26 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
-                _connection.Dispose();
+                await _connection.CloseAsync();
             }
             return null;
         }
 
-        public UserDetails GetUserDetailsByEmail(string email)
+        public async Task<UserDetails> GetUserDetailsByEmail(string email)
         {
             try
             {
                 _connection = new MySqlConnection(_connectionString);
-                _connection.Open();
+                await _connection.OpenAsync();
 
                 string query = "SELECT * FROM userdetails WHERE Email = @Email";
 
                 MySqlCommand cmd = new MySqlCommand(query, _connection);
                 cmd.Parameters.AddWithValue("@Email", email);
 
-                MySqlDataReader reader = cmd.ExecuteReader();
+                MySqlDataReader reader = (MySqlDataReader)await cmd.ExecuteReaderAsync();
 
-                if (reader.Read())
+                if (await reader.ReadAsync())
                 {
                     return new UserDetails
                     {
@@ -137,29 +136,28 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
-                _connection.Dispose();
+                await _connection.CloseAsync();
             }
             return null;
         }
 
-        public UserDetails GetUserDetailsByUserID(string userID)
+        public async Task<UserDetails> GetUserDetailsByUserID(string userID)
         {
             try
             {
                 _connection = new MySqlConnection(_connectionString);
-                _connection.Open();
+                await _connection.OpenAsync();
 
                 string query = "SELECT * FROM usersdetails WHERE UserID = @UserID";
 
                 MySqlCommand cmd = new MySqlCommand(query, _connection);
                 cmd.Parameters.AddWithValue("@UserID", userID);
 
-                MySqlDataReader reader = cmd.ExecuteReader();
+                MySqlDataReader reader = (MySqlDataReader)await cmd.ExecuteReaderAsync();
 
                 UserDetails userDetails = null;
 
-                if (reader.Read())
+                if (await reader.ReadAsync())
                 {
                     userDetails = new UserDetails
                     {
@@ -177,44 +175,41 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
-                _connection.Dispose();
+                await _connection.CloseAsync();
             }
             return null;
         }
 
-        public UserAuthDetails GetUserAuthenticationByUserID(string userID)
+        public async Task<UserAuthDetails> GetUserAuthenticationByUserID(string userID)
         {
             try
             {
-
-                UserDetails userDetails = GetUserDetailsByUserID(userID);
-
+                // Opening a connection
                 _connection = new MySqlConnection(_connectionString);
-                _connection.Open();
+                await _connection.OpenAsync();
 
-                string query = "SELECT * FROM usersauth WHERE UserID = @UserID";
-                MySqlCommand cmd = new MySqlCommand(query, _connection);
+                // Getting User auth details
+                string userAuthQuery = "SELECT * FROM usersauth WHERE UserID = @UserID";
+                MySqlCommand userAuthCmd = new MySqlCommand(userAuthQuery, _connection);
 
-                cmd.Parameters.AddWithValue("@UserID", userID);
+                userAuthCmd.Parameters.AddWithValue("@UserID", userID);
 
-                MySqlDataReader reader = cmd.ExecuteReader();
+                MySqlDataReader userAuthReader = (MySqlDataReader)await userAuthCmd.ExecuteReaderAsync();
 
                 UserAuthDetails userAuth = null;
 
-                if (reader.Read())
+                if (await userAuthReader.ReadAsync())
                 {
                     userAuth = new UserAuthDetails
                     {
-                        UserID = reader.GetString("UserID"),
-                        Username = reader.GetString("Username"),
-                        PasswordHash = reader.GetString("PasswordHash"),
-                        PasswordSalt = reader.GetString("PasswordSalt"),
+                        UserID = userAuthReader.GetString("UserID"),
+                        Username = userAuthReader.GetString("Username"),
+                        PasswordHash = userAuthReader.GetString("PasswordHash"),
+                        PasswordSalt = userAuthReader.GetString("PasswordSalt"),
                     };
                 }
 
                 return userAuth;
-
             }
             catch (Exception ex)
             {
@@ -222,8 +217,7 @@ namespace ExoticServer.Classes.Utils
             }
             finally
             {
-                _connection.Close();
-                _connection.Dispose();
+                await _connection.CloseAsync();
             }
             return null;
         }

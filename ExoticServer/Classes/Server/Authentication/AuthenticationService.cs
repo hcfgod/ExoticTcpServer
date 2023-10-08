@@ -2,16 +2,17 @@
 using ExoticServer.Classes.Utils;
 using Serilog;
 using System;
+using System.Threading.Tasks;
 
 namespace ExoticServer.Classes.Server.Authentication
 {
     public static class AuthenticationService
     {
-        public static bool RegisterUser(UserDetails userDetails, string clientHashedPassword)
+        public static async Task<bool> RegisterUser(UserDetails userDetails, string clientHashedPassword)
         {
             try
             {
-                UserDetails existingUser = ChronicApplication.Instance.Database.GetUserDetailsByEmail(userDetails.Email);
+                UserDetails existingUser = await ChronicApplication.Instance.Database.GetUserDetailsByEmail(userDetails.Email);
 
                 if (existingUser != null)
                 {
@@ -32,8 +33,8 @@ namespace ExoticServer.Classes.Server.Authentication
                     PasswordSalt = salt
                 };
 
-                ChronicApplication.Instance.Database.AddUserDetails(userDetails);
-                ChronicApplication.Instance.Database.AddUserAuthentication(userAuth);
+                await ChronicApplication.Instance.Database.AddUserDetails(userDetails);
+                await ChronicApplication.Instance.Database.AddUserAuthentication(userAuth);
 
                 return true;
             }
@@ -44,11 +45,11 @@ namespace ExoticServer.Classes.Server.Authentication
             }
         }
 
-        public static bool AuthenticateUser(string username, string clientHashedPassword)
+        public static async Task<bool> AuthenticateUser(string username, string clientHashedPassword)
         {
             try
             {
-                UserDetails userDetails = ChronicApplication.Instance.Database.GetUserDetailsByUsername(username);
+                UserDetails userDetails = await ChronicApplication.Instance.Database.GetUserDetailsByUsername(username);
 
                 if (userDetails == null)
                 {
@@ -58,7 +59,7 @@ namespace ExoticServer.Classes.Server.Authentication
                     return false;
                 }
 
-                UserAuthDetails userAuth = ChronicApplication.Instance.Database.GetUserAuthenticationByUserID(userDetails.UserID);
+                UserAuthDetails userAuth = await ChronicApplication.Instance.Database.GetUserAuthenticationByUserID(userDetails.UserID);
 
                 string serverHashedPassword = PasswordHelper.HashPassword(clientHashedPassword, userAuth.PasswordSalt);
 

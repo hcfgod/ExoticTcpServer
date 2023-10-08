@@ -134,6 +134,7 @@
     <Compile Include="Classes\Server\PacketSystem\Packet.cs" />
     <Compile Include="Classes\Server\PacketSystem\PacketHandler.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packets\ClientPublicKeyPacket.cs" />
+    <Compile Include="Classes\Server\PacketSystem\Packets\UserDetailsRequestPacket.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packets\UserLoginPacket.cs" />
     <Compile Include="Classes\Server\PacketSystem\Packets\UserRegistrationPacket.cs" />
     <Compile Include="Classes\Server\RateLimiter.cs" />

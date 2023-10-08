@@ -26,7 +26,7 @@ namespace ExoticServer.App
 
             _formHandler = new FormHandler();
 
-            _database = new Database("Server=localhost;User ID=root;Password=Keith2003!;Database=tcpserverdb;");
+            _database = new Database("Server=localhost;User ID=root;Password=Keith2003!;Database=tcpserverdb;Pooling=true;MinPoolSize=10;MaxPoolSize=100;ConnectionLifetime=300");
 
             _tcpServer = new ExoticTcpServer(9000);
 

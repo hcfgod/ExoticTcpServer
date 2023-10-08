@@ -23,6 +23,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             packetHandlers.TryAdd("Client Public Key Packet", new ClientPublicKeyPacket());
             packetHandlers.TryAdd("User Login Packet", new UserLoginPacket());
             packetHandlers.TryAdd("User Registration Packet", new UserRegistrationPacket());
+            packetHandlers.TryAdd("User Details Request Packet", new UserDetailsRequestPacket());
         }
 
         public byte[] SerializePacket(Packet packet)
