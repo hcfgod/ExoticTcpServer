@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Windows.Forms;
 
 namespace ExoticServer.Classes.Server.PacketSystem.Packets
 {

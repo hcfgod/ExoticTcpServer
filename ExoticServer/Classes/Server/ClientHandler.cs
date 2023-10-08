@@ -1,4 +1,5 @@
 ﻿using ExoticServer.App;
+using ExoticServer.Classes.Server.Authentication;
 using ExoticServer.Classes.Server.PacketSystem;
 using ExoticServer.Classes.Utils;
 using Serilog;
@@ -20,14 +21,13 @@ namespace ExoticServer.Classes.Server
         private ExoticTcpServer _server;
         private TcpClient _client;
         private NetworkStream _clientStream;
+        private PacketHandler _packetHandler;
+        private RateLimiter _rateLimiter;
 
         private bool _disposed;
 
         // This will store a reference to the task handling the client, as per your TcpServer design.
         public Task ClientTask { get; set; }
-
-        private PacketHandler _packetHandler;
-        private RateLimiter _rateLimiter;
 
         private bool hasSentTooManyRequestPacket;
 
@@ -55,15 +55,10 @@ namespace ExoticServer.Classes.Server
 
             try
             {
-                // Send Client Server Key
+                // Send the client our public server key
                 byte[] serverPublicKeyData = Encoding.UTF8.GetBytes(_server.ServerKeyManager.GetPublicKey());
                 Packet serverPublicKeyPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(serverPublicKeyData, "Server Public Key Packet");
                 await ChronicApplication.Instance.TcpServer.ServerPacketHandler.SendPacketAsync(serverPublicKeyPacket, _clientStream);
-
-                // Send the client their client id
-                byte[] clientKeyData = Encoding.UTF8.GetBytes(ClientId);
-                Packet clientIDPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(clientKeyData, "Client ID Packet");
-                await ChronicApplication.Instance.TcpServer.ServerPacketHandler.SendPacketAsync(clientIDPacket, _clientStream);
 
                 while (!token.IsCancellationRequested && _client.Connected)
                 {

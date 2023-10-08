@@ -21,6 +21,8 @@ namespace ExoticServer.Classes.Server.PacketSystem
         {
             // Initialize packet handlers
             packetHandlers.TryAdd("Client Public Key Packet", new ClientPublicKeyPacket());
+            packetHandlers.TryAdd("User Login Packet", new UserLoginPacket());
+            packetHandlers.TryAdd("User Registration Packet", new UserRegistrationPacket());
         }
 
         public byte[] SerializePacket(Packet packet)

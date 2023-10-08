@@ -3,6 +3,7 @@ using System.Windows.Forms;
 
 using ExoticServer.App.UI;
 using ExoticServer.Classes.Server;
+using ExoticServer.Classes.Utils;
 using Serilog;
 
 namespace ExoticServer.App
@@ -14,7 +15,9 @@ namespace ExoticServer.App
         private readonly FormHandler _formHandler;
         private readonly ILogger _logger;
 
-        private ExoticTcpServer _tcpServer;
+        private readonly ExoticTcpServer _tcpServer;
+
+        private readonly Database _database;
 
         public ChronicApplication()
         {
@@ -22,6 +25,8 @@ namespace ExoticServer.App
                 Instance = this;
 
             _formHandler = new FormHandler();
+
+            _database = new Database("Server=localhost;User ID=root;Password=Keith2003!;Database=tcpserverdb;");
 
             _tcpServer = new ExoticTcpServer(9000);
 
@@ -61,8 +66,11 @@ namespace ExoticServer.App
             Environment.Exit(0);
         }
 
+        public ILogger Logger { get { return _logger; } }
+
         public FormHandler FormHandler { get { return _formHandler; } }
-        public ILogger Logger { get { return _logger;} }
+
+        public Database Database { get { return _database; } }
 
         public ExoticTcpServer TcpServer { get { return _tcpServer; } }
     }
