@@ -1,4 +1,6 @@
-﻿using ExoticServer.Classes.Server.Authentication;
+﻿using ExoticServer.App;
+using ExoticServer.Classes.Server.Authentication;
+using ExoticServer.Classes.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -22,15 +24,31 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             UserDetails userDetails = JsonConvert.DeserializeObject<UserDetails>(userDetailsJsonString);
             UserAuthDetails userAuthDetails = JsonConvert.DeserializeObject<UserAuthDetails>(userAuthDeatilsJsonString);
 
+            if(!EmailValidator.IsValidEmail(userDetails.Email))
+            {
+                // Send a response packet saying must enter a valid email
+                return;
+            }
+
+            if (await ChronicApplication.Instance.Database.DoesUsernameExist(userDetails.Username))
+            {
+                // Send a response packet saying username already exist
+                return;
+            }
+
+            if (await ChronicApplication.Instance.Database.DoesEmailExist(userDetails.Email))
+            {
+                // Send a response packet saying email already exist
+                return;
+            }
+
             if (await AuthenticationService.RegisterUser(userDetails, userAuthDetails.PasswordHash))
             {
-                // Send a successful register packet as a response
-                MessageBox.Show("Registering User!");
+                // Send a response packet letting the user know they successfully registered
             }
             else
             {
-                // Send a failed registration packet as a response
-                MessageBox.Show("Fuck off RAT.");
+                // Send a response packet letting the user know the registration failed
             }
         }
     }

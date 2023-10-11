@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
 
 using ExoticServer.App.UI;
 using ExoticServer.Classes.Server;
 using ExoticServer.Classes.Utils;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace ExoticServer.App
@@ -21,17 +24,18 @@ namespace ExoticServer.App
 
         public ChronicApplication()
         {
-            if(Instance == null)
+            if (Instance == null)
                 Instance = this;
 
             _formHandler = new FormHandler();
 
-            _database = new Database("Server=localhost;User ID=root;Password=Keith2003!;Database=tcpserverdb;Pooling=true;MinPoolSize=10;MaxPoolSize=100;ConnectionLifetime=300");
+            string connectionString = GetConnectionStringFromConfig();
+            _database = new Database(connectionString);
 
-            _tcpServer = new ExoticTcpServer(9000);
+            _tcpServer = new ExoticTcpServer(GetPortFromConfig());
 
             _logger = new LoggerConfiguration()
-                        .WriteTo.File("D:/Coding/Projects/C#/ServerAndClient Projects/ExoticServer/ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File("..\\..\\ExoticServer-logs.txt", rollingInterval: RollingInterval.Day)
                         .CreateLogger();
 
             _logger.Information($"(ChronicApplication.cs) - ChronicApplication(): App Started!");
@@ -73,5 +77,18 @@ namespace ExoticServer.App
         public Database Database { get { return _database; } }
 
         public ExoticTcpServer TcpServer { get { return _tcpServer; } }
+
+
+        private string GetConnectionStringFromConfig()
+        {
+            var config = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\App\\config.json")));
+            return config["Database"]["ConnectionString"];
+        }
+
+        private int GetPortFromConfig()
+        {
+            var config = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\App\\config.json")));
+            return int.Parse(config["Server"]["Port"]);
+        }
     }
 }

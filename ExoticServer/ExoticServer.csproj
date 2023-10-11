@@ -142,6 +142,7 @@
     <Compile Include="Classes\Server\UserDetails.cs" />
     <Compile Include="Classes\Utils\CryptoUtility.cs" />
     <Compile Include="Classes\Utils\Database.cs" />
+    <Compile Include="Classes\Utils\EmailValidator.cs" />
     <Compile Include="Classes\Utils\PacketUtils.cs" />
     <Compile Include="Classes\Utils\PasswordHelper.cs" />
     <Compile Include="Forms\MainServerForm.cs">
@@ -168,6 +169,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="App\config.json" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

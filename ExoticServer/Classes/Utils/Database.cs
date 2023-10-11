@@ -221,5 +221,61 @@ namespace ExoticServer.Classes.Utils
             }
             return null;
         }
+
+        public async Task<bool> DoesUsernameExist(string username)
+        {
+            try
+            {
+                _connection = new MySqlConnection(_connectionString);
+                await _connection.OpenAsync();
+
+                string query = "SELECT COUNT(*) FROM usersdetails WHERE Username = @Username";
+
+                MySqlCommand cmd = new MySqlCommand(query, _connection);
+                cmd.Parameters.AddWithValue("@Username", username);
+
+                object result = await cmd.ExecuteScalarAsync();
+                int count = Convert.ToInt32(result);
+
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error("(Database.cs) DoesUsernameExist: Exception Caught - " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                await _connection.CloseAsync();
+            }
+        }
+
+        public async Task<bool> DoesEmailExist(string email)
+        {
+            try
+            {
+                _connection = new MySqlConnection(_connectionString);
+                await _connection.OpenAsync();
+
+                string query = "SELECT COUNT(*) FROM usersdetails WHERE Email = @Email";
+
+                MySqlCommand cmd = new MySqlCommand(query, _connection);
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                object result = await cmd.ExecuteScalarAsync();
+                int count = Convert.ToInt32(result);
+
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error("(Database.cs) DoesEmailExist: Exception Caught - " + ex.Message);
+                return false;
+            }
+            finally
+            {
+                await _connection.CloseAsync();
+            }
+        }
     }
 }
