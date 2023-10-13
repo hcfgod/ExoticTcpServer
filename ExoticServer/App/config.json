@@ -1,9 +1,9 @@
 {
   "Database": {
-    "ConnectionString": "Server=localhost;User ID=root;Password=Keith2003!;Database=tcpserverdb;Pooling=true;MinPoolSize=10;MaxPoolSize=100;ConnectionLifetime=300"
+    "ConnectionString": "Server=localhost;User ID=root;Password=YourPassword;Database=YourDatabase;Pooling=true;MinPoolSize=10;MaxPoolSize=100;ConnectionLifetime=300"
   },
 
   "Server": {
-    "Port": 24000
+    "Port": 13412
   }
 }
