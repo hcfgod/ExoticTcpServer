@@ -16,12 +16,12 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             byte[] aesKey = CryptoUtility.AesKey;
             byte[] aesIV = CryptoUtility.AesIV;
 
-            byte[] encryptedKeyBytes = CryptoUtility.EncryptWithPublicKey(aesKey, clientPublicKey);
+            byte[] encryptedKeyBytes = CryptoUtility.RsaEncrypt(aesKey, clientPublicKey);
 
             Packet encryptedKeyPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedKeyBytes, "Aes Key Packet");
             await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedKeyPacket, clientHandler.GetNetworkStream());
 
-            byte[] encryptedIVBytes = CryptoUtility.EncryptWithPublicKey(aesIV, clientPublicKey);
+            byte[] encryptedIVBytes = CryptoUtility.RsaEncrypt(aesIV, clientPublicKey);
 
             Packet encryptedIVPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedIVBytes, "Aes IV Packet");
             await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedIVPacket, clientHandler.GetNetworkStream());

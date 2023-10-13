@@ -107,3 +107,8 @@
 2023-10-13 05:01:47.244 -06:00 [INF] (ExoticTcpServer) ListenForClientsAsync() - Client Connected
 2023-10-13 05:01:59.005 -06:00 [INF] (ClientHandler.cs) HandleClientAsync(): Client Disconnected
 2023-10-13 05:02:01.019 -06:00 [INF] (ExoticTcpServer) StopServer - Stopped Server On Port: 24000
+2023-10-13 05:13:27.190 -06:00 [INF] (ChronicApplication.cs) - ChronicApplication(): App Started!
+2023-10-13 05:13:27.209 -06:00 [INF] (ExoticTcpServer) StartServer - Started Server On Port: 24000
+2023-10-13 05:13:29.997 -06:00 [INF] (ExoticTcpServer) ListenForClientsAsync() - Client Connected
+2023-10-13 05:13:39.735 -06:00 [INF] (ClientHandler.cs) HandleClientAsync(): Client Disconnected
+2023-10-13 05:13:41.847 -06:00 [INF] (ExoticTcpServer) StopServer - Stopped Server On Port: 24000

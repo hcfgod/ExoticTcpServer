@@ -32,7 +32,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
             {
                 if (packet.EncryptionFlag)
                 {
-                    packet.Data = CryptoUtility.Encrypt(packet.Data);  // Your Encrypt method
+                    packet.Data = CryptoUtility.AesEncrypt(packet.Data);  // Your Encrypt method
                 }
 
                 packet.GenerateChecksum();
@@ -85,7 +85,7 @@ namespace ExoticServer.Classes.Server.PacketSystem
                     {
                         if(packet.EncryptionFlag)
                         {
-                            packet.Data = CryptoUtility.Decrypt(packet.Data);
+                            packet.Data = CryptoUtility.AesDecrypt(packet.Data);
                         }
 
                         packets.Add(packet);
