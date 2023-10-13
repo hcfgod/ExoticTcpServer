@@ -1,11 +1,10 @@
 ﻿using ExoticServer.App;
-using ExoticServer.Classes.Server.Authentication;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace ExoticServer.Classes.Server.PacketSystem.Packets
+namespace ExoticServer.Classes.Server.PacketSystem.PacketHandlers
 {
-    public class UserDetailsRequestPacket : IPacketHandler
+    public class UserDetailsRequestPacketHandler : IPacketHandler
     {
         private ExoticTcpServer _tcpServer;
         private PacketHandler _serverPacketHandler;
@@ -26,8 +25,7 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             string userDetailsJsonString = JsonConvert.SerializeObject(requestedUserDetails);
             byte[] userDetailsData = Encoding.UTF8.GetBytes(userDetailsJsonString);
 
-            Packet requestedUserDetailsPacket = _serverPacketHandler.CreateNewPacket(userDetailsData, "Requested UserDetails Response Packet");
-            await _serverPacketHandler.SendPacketAsync(requestedUserDetailsPacket, clientHandler.GetNetworkStream());
+            await _serverPacketHandler.CreateAndSendPacket(clientHandler.GetNetworkStream(), userDetailsData, "Requested UserDetails Response", true);
         }
     }
 }

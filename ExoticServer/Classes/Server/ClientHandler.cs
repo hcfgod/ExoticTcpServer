@@ -60,7 +60,7 @@ namespace ExoticServer.Classes.Server
                 string jsonString = JsonConvert.SerializeObject(_server.ServerKeyManager.GetPublicKey());
 
                 byte[] serverPublicKeyData = Encoding.UTF8.GetBytes(jsonString);
-                Packet serverPublicKeyPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(serverPublicKeyData, "Server Public Key Packet");
+                Packet serverPublicKeyPacket = ChronicApplication.Instance.TcpServer.ServerPacketHandler.CreateNewPacket(serverPublicKeyData, "Server Public Key");
                 await ChronicApplication.Instance.TcpServer.ServerPacketHandler.SendPacketAsync(serverPublicKeyPacket, _clientStream);
 
                 while (!token.IsCancellationRequested && _client.Connected)

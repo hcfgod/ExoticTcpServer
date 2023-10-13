@@ -2,9 +2,9 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ExoticServer.Classes.Server.PacketSystem.Packets
+namespace ExoticServer.Classes.Server.PacketSystem.PacketHandlers
 {
-    public class ClientPublicKeyPacket : IPacketHandler
+    public class ClientPublicKeyPacketHandler : IPacketHandler
     {
         public async void Handle(Packet packet, ClientHandler clientHandler)
         {
@@ -17,14 +17,10 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             byte[] aesIV = CryptoUtility.AesIV;
 
             byte[] encryptedKeyBytes = CryptoUtility.RsaEncrypt(aesKey, clientPublicKey);
-
-            Packet encryptedKeyPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedKeyBytes, "Aes Key Packet");
-            await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedKeyPacket, clientHandler.GetNetworkStream());
+            await clientHandler.GetTcpServer().ServerPacketHandler.CreateAndSendPacket(clientHandler.GetNetworkStream(), encryptedKeyBytes, "Aes Key");
 
             byte[] encryptedIVBytes = CryptoUtility.RsaEncrypt(aesIV, clientPublicKey);
-
-            Packet encryptedIVPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedIVBytes, "Aes IV Packet");
-            await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedIVPacket, clientHandler.GetNetworkStream());
+            await clientHandler.GetTcpServer().ServerPacketHandler.CreateAndSendPacket(clientHandler.GetNetworkStream(), encryptedIVBytes, "Aes IV");
         }
     }
 }

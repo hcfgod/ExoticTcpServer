@@ -1,5 +1,5 @@
 ﻿using ExoticServer.App;
-using ExoticServer.Classes.Server.PacketSystem.Packets;
+using ExoticServer.Classes.Server.PacketSystem.PacketHandlers;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -20,10 +20,10 @@ namespace ExoticServer.Classes.Server.PacketSystem
         public PacketHandler()
         {
             // Initialize packet handlers
-            packetHandlers.TryAdd("Client Public Key Packet", new ClientPublicKeyPacket());
-            packetHandlers.TryAdd("User Login Packet", new UserLoginPacket());
-            packetHandlers.TryAdd("User Registration Packet", new UserRegistrationPacket());
-            packetHandlers.TryAdd("User Details Request Packet", new UserDetailsRequestPacket());
+            packetHandlers.TryAdd("Client Public Key", new ClientPublicKeyPacketHandler());
+            packetHandlers.TryAdd("User Login", new UserLoginPacketHandler());
+            packetHandlers.TryAdd("User Registration", new UserRegistrationPacketHandler());
+            packetHandlers.TryAdd("User Details Request", new UserDetailsRequestPacketHandler());
         }
 
         public byte[] SerializePacket(Packet packet)
@@ -131,38 +131,11 @@ namespace ExoticServer.Classes.Server.PacketSystem
             return packet;
         }
 
-        public List<Packet> CreateChunks(Packet largePacket, int maxChunkSize)
+        public async Task CreateAndSendPacket(NetworkStream stream, byte[] data, string packetType, bool encryptionFlag = false, string version = "0.1", int maxChunkSize = 4096)
         {
-            List<Packet> chunks = new List<Packet>();
-            byte[] largeData = largePacket.Data;
+            Packet newPacket = CreateNewPacket(data, packetType, encryptionFlag, version);
 
-            int totalFragments = (int)Math.Ceiling((double)largeData.Length / maxChunkSize);
-
-            for (int i = 0; i < largeData.Length; i += maxChunkSize)
-            {
-                byte[] chunkData = largeData.Skip(i).Take(maxChunkSize).ToArray();
-
-                Packet chunk = new Packet
-                {
-                    PacketID = largePacket.PacketID,
-                    PacketType = largePacket.PacketType,
-                    Timestamp = largePacket.Timestamp,
-                    Data = chunkData,
-                    EncryptionFlag = largePacket.EncryptionFlag,
-
-                    IsFragmented = true,
-                    FragmentID = largePacket.PacketID,
-                    SequenceNumber = i / maxChunkSize,
-                    TotalFragments = totalFragments,
-
-                    Version = largePacket.Version,
-                    ExpirationTime = largePacket.ExpirationTime,
-                    SenderID = largePacket.SenderID,
-                    ReceiverID = largePacket.ReceiverID,
-                };
-                chunks.Add(chunk);
-            }
-            return chunks;
+            await SendPacketAsync(newPacket, stream, maxChunkSize);
         }
 
         public async Task SendPacketAsync(Packet packet, NetworkStream stream, int maxChunkSize = 4096)
@@ -181,33 +154,6 @@ namespace ExoticServer.Classes.Server.PacketSystem
                 {
                     await SendSinglePacketAsync(stream, packet);
                 }
-            }
-            catch (IOException ioEx)
-            {
-                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): IO Error: {ioEx.Message}");
-            }
-            catch (ObjectDisposedException objDisposedEx)
-            {
-                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): General Error: {ex.Message}");
-            }
-        }
-
-        private async Task SendSinglePacketAsync(NetworkStream stream, Packet packet)
-        {
-            try
-            {
-                byte[] data = SerializePacket(packet);
-
-                if (data == null)
-                {
-                    ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): Serialization Error: Serialization failed data was null");
-                }
-
-                await stream.WriteAsync(data, 0, data.Length);
             }
             catch (IOException ioEx)
             {
@@ -298,6 +244,67 @@ namespace ExoticServer.Classes.Server.PacketSystem
             {
                 ChronicApplication.Instance.Logger.Warning($"Unknown packet type {packet.PacketType}");
             }
+        }
+
+        private async Task SendSinglePacketAsync(NetworkStream stream, Packet packet)
+        {
+            try
+            {
+                byte[] data = SerializePacket(packet);
+
+                if (data == null)
+                {
+                    ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): Serialization Error: Serialization failed data was null");
+                }
+
+                await stream.WriteAsync(data, 0, data.Length);
+            }
+            catch (IOException ioEx)
+            {
+                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): IO Error: {ioEx.Message}");
+            }
+            catch (ObjectDisposedException objDisposedEx)
+            {
+                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): Object Disposed Error: {objDisposedEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                ChronicApplication.Instance.Logger.Error($"(PacketHandler.cs) - SendPacketAsync(): General Error: {ex.Message}");
+            }
+        }
+
+        private List<Packet> CreateChunks(Packet largePacket, int maxChunkSize)
+        {
+            List<Packet> chunks = new List<Packet>();
+            byte[] largeData = largePacket.Data;
+
+            int totalFragments = (int)Math.Ceiling((double)largeData.Length / maxChunkSize);
+
+            for (int i = 0; i < largeData.Length; i += maxChunkSize)
+            {
+                byte[] chunkData = largeData.Skip(i).Take(maxChunkSize).ToArray();
+
+                Packet chunk = new Packet
+                {
+                    PacketID = largePacket.PacketID,
+                    PacketType = largePacket.PacketType,
+                    Timestamp = largePacket.Timestamp,
+                    Data = chunkData,
+                    EncryptionFlag = largePacket.EncryptionFlag,
+
+                    IsFragmented = true,
+                    FragmentID = largePacket.PacketID,
+                    SequenceNumber = i / maxChunkSize,
+                    TotalFragments = totalFragments,
+
+                    Version = largePacket.Version,
+                    ExpirationTime = largePacket.ExpirationTime,
+                    SenderID = largePacket.SenderID,
+                    ReceiverID = largePacket.ReceiverID,
+                };
+                chunks.Add(chunk);
+            }
+            return chunks;
         }
 
         private Packet ReassemblePacket(string fragmentID)

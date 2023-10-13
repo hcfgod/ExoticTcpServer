@@ -2,9 +2,9 @@
 using Newtonsoft.Json;
 using System.Text;  
 
-namespace ExoticServer.Classes.Server.PacketSystem.Packets
+namespace ExoticServer.Classes.Server.PacketSystem.PacketHandlers
 {
-    public class UserLoginPacket : IPacketHandler
+    public class UserLoginPacketHandler : IPacketHandler
     {
         private ExoticTcpServer _tcpServer;
         private PacketHandler _serverPacketHandler;
@@ -20,21 +20,17 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
             // Deserialize the JSON string to UserAuthDetails object
             UserAuthDetails userAuthDetails = JsonConvert.DeserializeObject<UserAuthDetails>(jsonString);
 
-            Packet loginResponsePacket = null;
-
             if (await AuthenticationService.AuthenticateUser(userAuthDetails.Username, userAuthDetails.PasswordHash))
             {
                 // Send a successful login packet as a response
                 byte[] dataBytes = Encoding.UTF8.GetBytes("Login Successful");
-                loginResponsePacket = _serverPacketHandler.CreateNewPacket(dataBytes, "Login Response Packet", true);
-                await _serverPacketHandler.SendPacketAsync(loginResponsePacket, clientHandler.GetNetworkStream());
+                await _serverPacketHandler.CreateAndSendPacket(clientHandler.GetNetworkStream(), dataBytes, "Login Response", true);
             }
             else
             {
                 // Send a failed login packet as a response
                 byte[] dataBytes = Encoding.UTF8.GetBytes("Login Failed");
-                loginResponsePacket = _serverPacketHandler.CreateNewPacket(dataBytes, "Login Response Packet", true);
-                await _serverPacketHandler.SendPacketAsync(loginResponsePacket, clientHandler.GetNetworkStream());
+                await _serverPacketHandler.CreateAndSendPacket(clientHandler.GetNetworkStream(), dataBytes, "Login Response", true);
             }
         }
     }
