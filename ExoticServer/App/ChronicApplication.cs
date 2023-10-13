@@ -29,8 +29,9 @@ namespace ExoticServer.App
 
             _formHandler = new FormHandler();
 
-            string connectionString = GetConnectionStringFromConfig();
-            _database = new Database(connectionString);
+            _database = new Database(GetConnectionStringFromConfig());
+
+            CryptoUtility.Initialize();
 
             _tcpServer = new ExoticTcpServer(GetPortFromConfig());
 

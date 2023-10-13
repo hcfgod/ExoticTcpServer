@@ -1,19 +1,27 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 public static class CryptoUtility
 {
-    private static readonly string key = "YourSecretKeyHere1234fgcxzasdfwa"; // 32 bytes for AES-256 - Will change from hard coded value eventually
-    private static readonly string iv = "1234145632167844"; // 16 bytes for AES - Will change from hard coded value eventually
+    private static byte[] key; // 32 bytes for AES-256
+    private static byte[] iv; // 16 bytes for AES-256
+
+    public static byte[] AesKey => key;
+    public static byte[] AesIV => iv;
+
+    public static void Initialize()
+    {
+        key = GenerateRandomKey();
+        iv = GenerateRandomIV();
+    }
 
     public static byte[] Encrypt(byte[] data)
     {
         using (Aes aesAlg = Aes.Create())
         {
-            aesAlg.Key = Encoding.UTF8.GetBytes(key);
-            aesAlg.IV = Encoding.UTF8.GetBytes(iv);
+            aesAlg.Key = key;
+            aesAlg.IV = iv;
 
             ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
 
@@ -33,8 +41,8 @@ public static class CryptoUtility
     {
         using (Aes aesAlg = Aes.Create())
         {
-            aesAlg.Key = Encoding.UTF8.GetBytes(key);
-            aesAlg.IV = Encoding.UTF8.GetBytes(iv);
+            aesAlg.Key = key;
+            aesAlg.IV = iv;
 
             ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
 
@@ -53,25 +61,47 @@ public static class CryptoUtility
     }
 
     // RSA encryption using the client's public key
-    public static byte[] EncryptWithPublicKey(byte[] data, string publicKey)
+    public static byte[] EncryptWithPublicKey(byte[] data, RSAParameters publicKey)
     {
-        using (RSA rsa = RSA.Create())
+        using (RSA rsa = new RSACng())
         {
-            rsa.FromXmlString(publicKey);
-            return rsa.Encrypt(data, RSAEncryptionPadding.Pkcs1);
+            rsa.ImportParameters(publicKey);
+            return rsa.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
         }
     }
 
     // RSA decryption using the server's private key
-    public static byte[] DecryptWithPrivateKey(byte[] encryptedData, string privateKey)
+    public static byte[] DecryptWithPrivateKey(byte[] encryptedData, RSAParameters privateKey)
     {
-        using (RSA rsa = RSA.Create())
+        using (RSA rsa = new RSACng())
         {
-            rsa.FromXmlString(privateKey);
-            return rsa.Decrypt(encryptedData, RSAEncryptionPadding.Pkcs1);
+            rsa.ImportParameters(privateKey);
+            return rsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
         }
     }
 
-    public static string AesKey => key;
-    public static string AesIV => iv;
+
+    private static byte[] GenerateRandomKey()
+    {
+        byte[] key = new byte[32]; // 32 bytes
+
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            rng.GetBytes(key);
+        }
+
+        return key;
+    }
+
+    private static byte[] GenerateRandomIV()
+    {
+        byte[] iv = new byte[16]; // 16 bytes
+
+        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+        {
+            rng.GetBytes(iv);
+        }
+
+        return iv;
+    }
 }

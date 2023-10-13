@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ExoticServer.Classes.Server.PacketSystem.Packets
 {
@@ -6,17 +8,23 @@ namespace ExoticServer.Classes.Server.PacketSystem.Packets
     {
         public async void Handle(Packet packet, ClientHandler clientHandler)
         {
-            string clientPublicKey = Encoding.UTF8.GetString(packet.Data);
+            string clientPublicKeyJson = Encoding.UTF8.GetString(packet.Data);
+            RSAParameters clientPublicKey = JsonConvert.DeserializeObject<RSAParameters>(clientPublicKeyJson);
+
             clientHandler.GetTcpServer().ServerKeyManager.SetClientPublicKey(clientPublicKey);
 
-            string aesKey = CryptoUtility.AesKey;
-            string aesIV = CryptoUtility.AesIV;
+            byte[] aesKey = CryptoUtility.AesKey;
+            byte[] aesIV = CryptoUtility.AesIV;
 
-            byte[] keyAndIVBytes = Encoding.UTF8.GetBytes($"{aesKey} : {aesIV}");
-            byte[] encryptedKeyAndIVBytes = CryptoUtility.EncryptWithPublicKey(keyAndIVBytes, clientPublicKey);
+            byte[] encryptedKeyBytes = CryptoUtility.EncryptWithPublicKey(aesKey, clientPublicKey);
 
-            Packet encryptedKeyAndIVPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedKeyAndIVBytes, "Aes Key And IV Packet");
-            await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedKeyAndIVPacket, clientHandler.GetNetworkStream());
+            Packet encryptedKeyPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedKeyBytes, "Aes Key Packet");
+            await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedKeyPacket, clientHandler.GetNetworkStream());
+
+            byte[] encryptedIVBytes = CryptoUtility.EncryptWithPublicKey(aesIV, clientPublicKey);
+
+            Packet encryptedIVPacket = clientHandler.GetTcpServer().ServerPacketHandler.CreateNewPacket(encryptedIVBytes, "Aes IV Packet");
+            await clientHandler.GetTcpServer().ServerPacketHandler.SendPacketAsync(encryptedIVPacket, clientHandler.GetNetworkStream());
         }
     }
 }
